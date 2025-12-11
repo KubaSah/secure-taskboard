@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Nowe zadanie{% endblock %}
+{% block section_title %}Nowe zadanie{% endblock %}
+{% block content %}
+<div class="card">
+    <form method="post">
+        {{ form.csrf_token }}
+        {% if not preselected_pid %}
+        {% if form.project_id.choices %}
+        <div class="field">
+            <label>{{ form.project_id.label }}</label>
+            {{ form.project_id() }}
+        </div>
+        {% else %}
+        <div class="alert alert-warning alert-no-projects">Nie masz jeszcze projektów. <a
+                href="{{ url_for('projects.create_project') }}" class="underline">Utwórz projekt</a> aby móc dodawać
+            zadania.</div>
+        {% endif %}
+        {% else %}
+        <div class="field">
+            <label>Projekt</label>
+            <div class="chip">#{{ preselected_pid }}</div>
+        </div>
+        {% endif %}
+        <div class="field">
+            <label>{{ form.title.label }}</label>
+            {{ form.title(size=60) }}
+        </div>
+        <div class="field">
+            <label>{{ form.description.label }}</label>
+            {{ form.description(rows=6, cols=60) }}
+        </div>
+        <div class="field field-row">
+            <div>
+                <label>{{ form.status.label }}</label>
+                {{ form.status() }}
+            </div>
+            <div>
+                <label>{{ form.priority.label }}</label>
+                {{ form.priority() }}
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Utwórz</button>
+            <a class="btn" href="{{ url_for('tasks.list_tasks') }}">Anuluj</a>
+        </div>
+        {% for field, errors in form.errors.items() %}
+        {% for error in errors %}
+        <div class="alert alert-danger alert-error">{{ field }}: {{ error }}</div>
+        {% endfor %}
+        {% endfor %}
+    </form>
+</div>
+{% endblock %}

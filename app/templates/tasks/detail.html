@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Zadanie #{{ task.id }}{% endblock %}
+{% block section_title %}Zadanie #{{ task.id }}{% endblock %}
+{% block content %}
+<div class="grid task-detail-grid">
+    <div class="card">
+        <h1 class="mb-6">{{ task.title }}</h1>
+        <div class="meta task-meta-row">
+            <span class="chip {{ task.status }}">Status: {{ 'Do zrobienia' if task.status=='todo' else ('W toku' if
+                task.status=='in_progress' else 'Zrobione') }}</span>
+            <span class="chip">Priorytet: {{ task.priority }}</span>
+            {% if task.assignee %}<span class="chip">Przypisane: {{ task.assignee.name }}</span>{% endif %}
+        </div>
+        {% if task.description %}
+        <div class="task-description">{{ task.description|safe }}</div>
+        {% endif %}
+
+        <div class="task-actions">
+            <form method="post" action="{{ url_for('tasks.update_status', task_id=task.id) }}" class="task-form-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <label for="status" class="meta">Zmień status</label>
+                <select id="status" name="status">
+                    <option value="todo" {% if task.status=='todo' %}selected{% endif %}>Do zrobienia</option>
+                    <option value="in_progress" {% if task.status=='in_progress' %}selected{% endif %}>W toku</option>
+                    <option value="done" {% if task.status=='done' %}selected{% endif %}>Zrobione</option>
+                </select>
+                <button class="btn" type="submit">Zastosuj</button>
+            </form>
+            <form method="post" action="{{ url_for('tasks.update_assignee', task_id=task.id) }}"
+                class="task-form-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <label for="assignee" class="meta">Przypisz</label>
+                <select id="assignee" name="assignee">
+                    {% for uid, uname in assignee_choices %}
+                    <option value="{{ uid }}" {% if task.assignee and task.assignee.id==uid %}selected{% endif %}>{{
+                        uname }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn" type="submit">Ok</button>
+            </form>
+            <form method="post" action="{{ url_for('tasks.delete_task', task_id=task.id) }}" class="task-form-inline"
+                data-confirm="Usunąć to zadanie?">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="btn btn-danger" type="submit">Usuń zadanie</button>
+            </form>
+            <a class="btn" href="{{ url_for('tasks.list_tasks') }}">Powrót</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Komentarze</h2>
+        <div class="grid comments-grid">
+            {% for c in task.comments %}
+            <div class="card comment-card">
+                <div class="meta comment-author">{{ c.author.name if c.author else 'anon' }}</div>
+                <div>{{ c.content }}</div>
+                <form method="post" action="{{ url_for('tasks.delete_comment', task_id=task.id, comment_id=c.id) }}"
+                    class="comment-delete-form" data-confirm="Usunąć komentarz?">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button class="btn btn-danger btn-delete-comment" type="submit">Usuń</button>
+                </form>
+            </div>
+            {% else %}
+            <div class="muted">Brak komentarzy</div>
+            {% endfor %}
+        </div>
+        <form method="post" action="{{ url_for('tasks.add_comment', task_id=task.id) }}" class="add-comment-form">
+            {{ comment_form.csrf_token }}
+            <div class="field">
+                {{ comment_form.content(rows=3, cols=60) }}
+            </div>
+            <button class="btn btn-primary" type="submit">Dodaj komentarz</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

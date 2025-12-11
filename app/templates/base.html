@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pl">
+
+<head>
+    <meta charset="utf-8">
+    <title>{% block title %}Secure Taskboard{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css', v=app_version) }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div class="layout">
+        <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo" aria-hidden="true"></div>
+                <div class="brand-name">Secure Taskboard</div>
+            </div>
+            <nav class="nav">
+                <a href="{{ url_for('core.index') }}"
+                    class="{% if request.endpoint=='core.index' %}active{% endif %}">🏠 Dashboard</a>
+                <a href="{{ url_for('projects.list_projects') }}"
+                    class="{% if request.blueprint=='projects' %}active{% endif %}">📁 Projekty</a>
+                <a href="{{ url_for('tasks.list_tasks') }}"
+                    class="{% if request.blueprint=='tasks' %}active{% endif %}">📌 Zadania</a>
+                <a href="{{ url_for('core.api_explorer') }}"
+                    class="{% if request.endpoint=='core.api_explorer' %}active{% endif %}">🔌 API
+                    <small>REST</small></a>
+            </nav>
+        </aside>
+        <section>
+            <header class="topbar">
+                <div class="section-title-wrap">
+                    <strong>{% block section_title %}{% endblock %}</strong>
+                </div>
+                <div class="search">
+                    <form action="{{ url_for('core.search') }}" method="get">
+                        <input type="text" name="q" placeholder="Szukaj…" aria-label="Szukaj">
+                    </form>
+                </div>
+                <div class="user">
+                    {% if current_user.is_authenticated %}
+                    <span>{{ current_user.name }}</span>
+                    <a class="btn btn-ghost api-tokens-link" href="{{ url_for('core.tokens_page') }}">API Tokens</a>
+                    <a class="btn btn-ghost" href="{{ url_for('core.audit_page') }}">Audit</a>
+                    <a class="btn btn-ghost" href="{{ url_for('auth.logout') }}">Wyloguj</a>
+                    {% else %}
+                    <a class="btn btn-primary" href="{{ url_for('auth.login') }}">Zaloguj</a>
+                    {% endif %}
+                </div>
+            </header>
+            <main class="content">
+                <div class="container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="alerts">
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category if category in ['success','danger','info'] else 'info' }}">
+                            {{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+            {# Version moved to Account page to be less prominent #}
+        </section>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js', v=app_version) }}" defer></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>
